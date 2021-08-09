@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.test.pay.dao.PayDao">
+
+    <!-- 支付订单查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.test.pay.entity.vo.PayStatusVo">
+        <result column="merchant_no" property="merchantNo"/>
+        <result column="terminal_no" property="terminalNo"/>
+        <result column="flow_no" property="flowNo"/>
+        <result column="pay_amount" property="payAmount"/>
+        <result column="pay_code" property="payCode"/>
+        <result column="pay_status" property="payStatus"/>
+    </resultMap>
+
+    <!-- 退款订单查询映射结果 -->
+    <resultMap id="RefundResultMap" type="com.test.pay.entity.vo.PayRefundVo">
+        <result column="merchant_no" property="merchantNo"/>
+        <result column="terminal_no" property="terminalNo"/>
+        <result column="flow_no" property="flowNo"/>
+        <result column="pay_amount" property="refundAmount"/>
+        <result column="status" property="refundStatus"/>
+    </resultMap>
+
+    <!-- 插入支付订单-->
+    <insert id="addPayOrder">
+        INSERT INTO
+        t_pay_flow
+        (merchant_no, terminal_no, flow_no, pay_amount, pay_code, pay_status, valid)
+        VALUES
+        (#{pay.merchantNo}, #{pay.terminalNo}, #{pay.flowNo}, #{pay.amount}, #{pay.payCode}, #{state}, 1)
+    </insert>
+
+    <!-- 插入撤销/退款流水-->
+    <insert id="addCancelRefundOrder">
+        INSERT INTO
+        t_cancel_refund_flow
+        (merchant_no, terminal_no, flow_no, pay_amount, status, valid)
+        VALUES
+        (#{cancel.merchantNo}, #{cancel.terminalNo}, #{cancel.flowNo}, #{cancel.amount}, #{state}, 1);
+    </insert>
+
+
+    <!-- 查询支付订单信息-->
+    <select id="queryStatus" parameterType="com.test.pay.entity.req.pay.QueryStatusReq" resultMap="BaseResultMap">
+        SELECT
+        merchant_no, terminal_no, flow_no, pay_amount, pay_code, pay_status
+        FROM
+        t_pay_flow
+        WHERE
+        valid = 1
+        <if test="merchantNo != null and merchantNo != ''">
+            and merchant_no = #{merchantNo}
+        </if>
+        <if test="terminalNo != null and terminalNo != ''">
+            and terminal_no = #{terminalNo}
+        </if>
+        <if test="terminalNo != null and terminalNo != ''">
+            and flow_no = #{flowNo}
+        </if>
+    </select>
+
+
+    <!-- 查询支付订单数量-->
+    <select id="queryOrderCount" resultType="java.lang.Integer">
+        SELECT
+        count(1)
+        FROM
+        t_pay_flow
+        WHERE
+        valid = 1
+        <if test="merchantNo != null and merchantNo != ''">
+            and merchant_no = #{merchantNo}
+        </if>
+        <if test="terminalNo != null and terminalNo != ''">
+            and terminal_no = #{terminalNo}
+        </if>
+        <if test="terminalNo != null and terminalNo != ''">
+            and flow_no = #{flowNo}
+        </if>
+    </select>
+
+    <!-- 查询撤销、退款单号是否存在 -->
+    <select id="queryCancelRefundCount" resultType="java.lang.Integer">
+        SELECT
+        count(1)
+        FROM
+        t_cancel_refund_flow
+        WHERE
+        valid = 1
+        and status != -1
+        <if test="merchantNo != null and merchantNo != ''">
+            and merchant_no = #{merchantNo}
+        </if>
+        <if test="terminalNo != null and terminalNo != ''">
+            and terminal_no = #{terminalNo}
+        </if>
+        <if test="terminalNo != null and terminalNo != ''">
+            and flow_no = #{flowNo}
+        </if>
+    </select>
+
+    <!-- 查询退款订单 -->
+    <select id="queryRefund" parameterType="com.test.pay.entity.req.pay.QueryStatusReq" resultMap="RefundResultMap">
+        SELECT
+        merchant_no, terminal_no, flow_no, pay_amount, status
+        FROM
+        t_cancel_refund_flow
+        WHERE
+        valid = 1
+        <if test="merchantNo != null and merchantNo != ''">
+            and merchant_no = #{merchantNo}
+        </if>
+        <if test="terminalNo != null and terminalNo != ''">
+            and terminal_no = #{terminalNo}
+        </if>
+        <if test="terminalNo != null and terminalNo != ''">
+            and flow_no = #{flowNo}
+        </if>
+    </select>
+
+
+</mapper>
